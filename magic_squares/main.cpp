@@ -20,7 +20,7 @@ bool check_if_magic(const std::string& square) {
 
 function<bool(string)> generate_test(int round) {
     switch(round) {
-    case 1:
+    case 1://direct solution
     {
         auto c15 = '5' * 3;
         uint_fast64_t ideal_char_map = static_cast<uint_fast64_t>(0x1FF) << 49;
@@ -51,13 +51,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 11:
-    {
-        return generate_test(1);
-    }
-        break;
-
-    case 12:
+    case 2:// the oddity heuristic
     {
         auto c15 = '5' * 3;
         uint_fast64_t ideal_char_map = static_cast<uint_fast64_t>(0x1FF) << 49;
@@ -95,13 +89,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 21:
-    {
-        return generate_test(1);
-    }
-        break;
-
-    case 22:// central 5
+    case 3:// central 5
     {
         auto magic_number = '5' * 3;
         auto not_so_magic_number = '5' * 2;
@@ -136,13 +124,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 31:
-    {
-        return generate_test(1);
-    }
-        break;
-
-    case 32://no shift
+    case 4://no shift
     {
         auto magic_number = '5' * 3;
         auto not_so_magic_number = '5' * 2;
@@ -183,13 +165,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 41:
-    {
-        return generate_test(1);
-    }
-        break;
-
-    case 42: //precached answers
+    case 5: //precached answers
     {
         const std::array<std::string, 8>
                 all_magic_squares = {
@@ -209,13 +185,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 51://string array
-    {
-        return generate_test(42);
-    }
-        break;
-
-    case 52://string set
+    case 6://string set
     {
         const std::set<std::string>
                 all_magic_squares = {
@@ -231,13 +201,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 61://string set
-    {
-        return generate_test(52);
-    }
-        break;
-
-    case 62://string unordered
+    case 7://string unordered
     {
         const std::unordered_set<std::string>
                 all_magic_squares = {
@@ -253,13 +217,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 71://string array
-    {
-        return generate_test(51);
-    }
-        break;
-
-    case 72://string array plus
+    case 8://string array plus
     {
         const std::array<std::string, 8>
           all_magic_squares = {
@@ -286,39 +244,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 81://direct solution
-    {
-        auto c15 = '5' * 3;
-        uint_fast64_t ideal_char_map =
-            static_cast<uint_fast64_t>(0x1FF) << 49;
-        uint_fast64_t char_map_one = 1u;
-
-        return [=] (const std::string& sq) {
-          if ((sq[0] + sq[1] + sq[2] != c15)
-            || (sq[3] + sq[4] + sq[5] != c15)
-            || (sq[6] + sq[7] + sq[8] != c15)
-
-            || (sq[0] + sq[3] + sq[6] != c15)
-            || (sq[1] + sq[4] + sq[7] != c15)
-            || (sq[2] + sq[5] + sq[8] != c15)
-
-            || (sq[0] + sq[4] + sq[8] != c15)
-            || (sq[2] + sq[4] + sq[6] != c15))
-            return false;
-
-          auto char_map = ideal_char_map;
-          for(auto i = 0u; i < 9; ++i)
-            char_map ^= char_map_one << sq[i];
-          if (char_map != 0)
-            return false;
-
-          return true;
-          };
-
-    }
-        break;
-
-    case 82://answers in uint64_t
+    case 9://answers in uint64_t
     {
         const std::array<uint64_t, 8> magic_numbers
         {
@@ -345,13 +271,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 91://Array on uint64_t
-    {
-        return generate_test(52);
-    }
-        break;
-
-    case 92://set of uint64_t
+    case 10://set of uint64_t
     {
         const std::set<uint64_t> magic_numbers
         {
@@ -375,13 +295,7 @@ function<bool(string)> generate_test(int round) {
     }
         break;
 
-    case 101://Array on uint64_t
-    {
-        return generate_test(91);
-    }
-        break;
-
-    case 102://unordered set of uint64_t
+    case 11://unordered set of uint64_t
     {
         const std::unordered_set<uint64_t> magic_numbers
         {
@@ -441,7 +355,7 @@ struct Result {
 int main(int argc, char * argv[]) {
 
     if(argc != 2) {
-        cout << "program magic_sqare_numers\n";
+        cout << "program magic_sqare_numer\n";
         return 1;
     }
 
