@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
 
 
 // http://wordsandbuttons.online/challenge_your_performance_intuition_with_cpp_magic_squares.html
@@ -12,15 +13,6 @@
 using namespace std;
 
 
-
-bool check_if_magic(const string& square) {
-    // add your code here
-    // (or above if you need global stuff)
-
-    return false;
-}
-
-//function<bool(string)>
 pair<function<bool(string)>, string> generate_test(int round) {
     switch(round) {
     case 0://direct solution
@@ -396,22 +388,35 @@ vector<string> generate_numbers() {
 
 struct Result {
     string name;
-    int number = -1;
+    int size_t = 0;
     chrono::duration<double> time;
     function<bool(string)> algo;
+    vector<bool> magic_squares_result;
 };
 
-void validate(Result & res, const vector<string> & out) {
 
+//TODO add some simple algo to test it
+void validate(array<Result, 11> & results, const vector<string> & out) {
+    for(auto & res: results) {
+        res.magic_squares_result.reserve(out.size());
+        for(size_t i = 0; i < out.size(); ++i) {
+            res.magic_squares_result[i] = res.algo(out[i]);
+        }
+    }
+    //compare magic_seq_results
 }
 
-// TODO validation vector?
-void measure(Result & res, const vector<string> & out) {
+
+void measure(Result & res, const vector<string> & out, uint32_t repeat = 1) {
     auto start = chrono::system_clock::now();
 
-    auto end = chrono::system_clock::now();
-    chrono::duration<double> difference = end - start;
-    cout << difference.count() << "\n\n";
+    for(const auto & seq: out) {
+        for(uint32_t i = 0; i < repeat; ++i) {
+            res.algo(seq);
+        }
+    }
+
+    res.time = chrono::system_clock::now() - start;
 }
 
 
@@ -420,14 +425,16 @@ int main() {
 
     array<Result, 11> results;
 
-    for(int i = 0; i < 11; ++i) {
+    for(size_t i = 0; i < 11; ++i) {
         auto [algo, name] = generate_test(i);
         results[i].algo = algo;
         results[i].name = name;
         results[i].number = i;//needed
+
+        measure(results[i], out, 1000);
+        cout << "name: " << results[i].name <<
+                "\n\t\t\ttime: " << results[i].time.count() << endl;
     }
-
-
 
     return 0;
 }
