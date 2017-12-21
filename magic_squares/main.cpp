@@ -3,6 +3,9 @@
 #include <functional>
 #include <set>
 #include <unordered_set>
+#include <vector>
+#include <algorithm>
+
 
 // http://wordsandbuttons.online/challenge_your_performance_intuition_with_cpp_magic_squares.html
 
@@ -10,23 +13,24 @@ using namespace std;
 
 
 
-bool check_if_magic(const std::string& square) {
+bool check_if_magic(const string& square) {
     // add your code here
     // (or above if you need global stuff)
 
     return false;
 }
 
-
-function<bool(string)> generate_test(int round) {
+//function<bool(string)>
+pair<function<bool(string)>, string> generate_test(int round) {
     switch(round) {
-    case 1://direct solution
+    case 0://direct solution
     {
         auto c15 = '5' * 3;
         uint_fast64_t ideal_char_map = static_cast<uint_fast64_t>(0x1FF) << 49;
         uint_fast64_t char_map_one = 1u;
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if ((sq[0] + sq[1] + sq[2] != c15)
                     || (sq[3] + sq[4] + sq[5] != c15)
                     || (sq[6] + sq[7] + sq[8] != c15)
@@ -47,17 +51,20 @@ function<bool(string)> generate_test(int round) {
                 return false;
 
             return true;
-        };
+        },
+        "direct solution"
+        );
     }
         break;
 
-    case 2:// the oddity heuristic
+    case 1:// the oddity heuristic
     {
         auto c15 = '5' * 3;
         uint_fast64_t ideal_char_map = static_cast<uint_fast64_t>(0x1FF) << 49;
         uint_fast64_t char_map_one = 1u;
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if ( (sq[0] & 1) != 0 || (sq[1] & 1) == 0
                  || (sq[2] & 1) != 0 || (sq[3] & 1) == 0
                  || (sq[4] & 1) == 0
@@ -81,22 +88,25 @@ function<bool(string)> generate_test(int round) {
             for(auto i = 0u; i < 9; ++i)
                 char_map ^= char_map_one << sq[i];
 
-                if (char_map != 0)
-                    return false;
+            if (char_map != 0)
+                return false;
 
             return true;
-        };
+        },
+        "the oddity heuristic"
+        );
     }
         break;
 
-    case 3:// central 5
+    case 2:// central 5
     {
         auto magic_number = '5' * 3;
         auto not_so_magic_number = '5' * 2;
         uint_fast64_t ideal_char_map = static_cast<uint_fast64_t>(0x1FF) << 49;
         uint_fast64_t char_map_one = 1u;
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if(sq[4] != '5')
                 return false;
 
@@ -120,15 +130,17 @@ function<bool(string)> generate_test(int round) {
                 return false;
 
             return true;
-        };
+        },
+        "central 5"
+        );
     }
         break;
 
-    case 4://no shift
+    case 3://no shift
     {
         auto magic_number = '5' * 3;
         auto not_so_magic_number = '5' * 2;
-        const std::array<uint16_t, 58> bit_shifts {
+        const array<uint16_t, 58> bit_shifts {
             0, 0, 0, 0,   0, 0, 0, 0,
             0, 0, 0, 0,   0, 0, 0, 0,
             0, 0, 0, 0,   0, 0, 0, 0,
@@ -140,7 +152,8 @@ function<bool(string)> generate_test(int round) {
             128, 256
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+            [=] (const string& sq) {
             if ((sq[0] + sq[1] + sq[2] != magic_number)
                     || (sq[3] + sq[5] != not_so_magic_number)
                     || (sq[6] + sq[7] + sq[8] != magic_number)
@@ -161,13 +174,15 @@ function<bool(string)> generate_test(int round) {
                 return false;
 
             return true;
-        };
+        },
+        "no shift"
+        );
     }
         break;
 
-    case 5: //precached answers
+    case 4: //precached answers
     {
-        const std::array<std::string, 8>
+        const array<string, 8>
                 all_magic_squares = {
             "816357492", "492357816",
             "618753294", "294753618",
@@ -175,19 +190,22 @@ function<bool(string)> generate_test(int round) {
             "438951276", "276951438"
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             for(auto i = 0u; i < 8; ++i)
                 if(sq == all_magic_squares[i])
                     return true;
 
             return false;
-        };
+        },
+        "precached answers"
+        );
     }
         break;
 
-    case 6://string set
+    case 5://string set
     {
-        const std::set<std::string>
+        const set<string>
                 all_magic_squares = {
             "816357492", "492357816",
             "618753294", "294753618",
@@ -195,15 +213,18 @@ function<bool(string)> generate_test(int round) {
             "438951276", "276951438"
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             return all_magic_squares.find(sq) != all_magic_squares.end();
-        };
+        },
+        "string set"
+        );
     }
         break;
 
-    case 7://string unordered
+    case 6://string unordered
     {
-        const std::unordered_set<std::string>
+        const unordered_set<string>
                 all_magic_squares = {
             "816357492", "492357816",
             "618753294", "294753618",
@@ -211,42 +232,48 @@ function<bool(string)> generate_test(int round) {
             "438951276", "276951438"
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             return all_magic_squares.find(sq) != all_magic_squares.end();
-        };
+        },
+        "string unordered"
+        );
     }
         break;
 
-    case 8://string array plus
+    case 7://string array plus
     {
-        const std::array<std::string, 8>
-          all_magic_squares = {
-          "816357492", "492357816",
-          "618753294", "294753618",
-          "834159672", "672159834",
-          "438951276", "276951438"
+        const array<string, 8>
+                all_magic_squares = {
+            "816357492", "492357816",
+            "618753294", "294753618",
+            "834159672", "672159834",
+            "438951276", "276951438"
         };
 
-        return [=] (const std::string& sq) {
-          if ( (sq[0] & 1) != 0 || (sq[1] & 1) == 0
-            || (sq[2] & 1) != 0 || (sq[3] & 1) == 0
-            || (sq[4] & 1) == 0
-            || (sq[5] & 1) == 0 || (sq[6] & 1) != 0
-            || (sq[7] & 1) == 0 || (sq[8] & 1) != 0)
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
+            if ( (sq[0] & 1) != 0 || (sq[1] & 1) == 0
+                 || (sq[2] & 1) != 0 || (sq[3] & 1) == 0
+                 || (sq[4] & 1) == 0
+                 || (sq[5] & 1) == 0 || (sq[6] & 1) != 0
+                 || (sq[7] & 1) == 0 || (sq[8] & 1) != 0)
+                return false;
+
+            for(auto i = 0u; i < 8; ++i)
+                if(sq == all_magic_squares[i])
+                    return true;
+
             return false;
-
-          for(auto i = 0u; i < 8; ++i)
-            if(sq == all_magic_squares[i])
-              return true;
-
-          return false;
-        };
+        },
+        "string array plus"
+        );
     }
         break;
 
-    case 9://answers in uint64_t
+    case 8://answers in uint64_t
     {
-        const std::array<uint64_t, 8> magic_numbers
+        const array<uint64_t, 8> magic_numbers
         {
             3545515123101087289, 3690191062107239479,
             3544956562637535289, 3978984379655991859,
@@ -254,7 +281,8 @@ function<bool(string)> generate_test(int round) {
             3977867258728887859, 4122543197735040049
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if(sq[4] != '5')
                 return false;
 
@@ -267,13 +295,15 @@ function<bool(string)> generate_test(int round) {
                     return true;
 
             return false;
-        };
+        },
+        "answers in uint64_t"
+        );
     }
         break;
 
-    case 10://set of uint64_t
+    case 9://set of uint64_t
     {
-        const std::set<uint64_t> magic_numbers
+        const set<uint64_t> magic_numbers
         {
             3545515123101087289, 3690191062107239479,
             3544956562637535289, 3978984379655991859,
@@ -281,7 +311,8 @@ function<bool(string)> generate_test(int round) {
             3977867258728887859, 4122543197735040049
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if(sq[4] != '5')
                 return false;
 
@@ -291,13 +322,15 @@ function<bool(string)> generate_test(int round) {
 
             return magic_numbers.find(magic_number)
                     != magic_numbers.end();
-        };
+        },
+        "set of uint64_t"
+        );
     }
         break;
 
-    case 11://unordered set of uint64_t
+    case 10://unordered set of uint64_t
     {
-        const std::unordered_set<uint64_t> magic_numbers
+        const unordered_set<uint64_t> magic_numbers
         {
             3545515123101087289, 3690191062107239479,
             3544956562637535289, 3978984379655991859,
@@ -305,7 +338,8 @@ function<bool(string)> generate_test(int round) {
             3977867258728887859, 4122543197735040049
         };
 
-        return [=] (const std::string& sq) {
+        return pair<function<bool(string)>, string> (
+                    [=] (const string& sq) {
             if(sq[4] != '5')
                 return false;
 
@@ -315,12 +349,14 @@ function<bool(string)> generate_test(int round) {
 
             return magic_numbers.find(magic_number)
                     != magic_numbers.end();
-        };
+        },
+        "unordered set of uint64_t"
+        );
     }
         break;
 
     default:
-        cerr << "dude focus\n";
+        cerr << "dude focus passed:" << round << std::endl;
         exit(2);
     };
 
@@ -344,31 +380,54 @@ void generate_or_check(int index_or_check = 8) {
     }
 }
 
+
+vector<string> generate_numbers() {
+    string in("123456789");
+    int i = 0;
+    vector<string> out(362880);
+
+    do {
+        out[i] = in;
+        i++;
+    } while(next_permutation(in.begin(), in.end()));//362880
+
+    return out;
+}
+
 struct Result {
-    std::string name;
-    int numer = -1;
-    int count = 0;
-    double time = 0;
+    string name;
+    int number = -1;
+    chrono::duration<double> time;
+    function<bool(string)> algo;
 };
 
+void validate(Result & res, const vector<string> & out) {
 
-int main(int argc, char * argv[]) {
+}
 
-    if(argc != 2) {
-        cout << "program magic_sqare_numer\n";
-        return 1;
-    }
+// TODO validation vector?
+void measure(Result & res, const vector<string> & out) {
+    auto start = chrono::system_clock::now();
 
-    std::string sequance(argv[1]);
-    auto start = std::chrono::system_clock::now();
-
-
-//    auto t1 = generate_test();
-//    t1(sequance);
-
-    auto end = std::chrono::system_clock::now();
+    auto end = chrono::system_clock::now();
     chrono::duration<double> difference = end - start;
     cout << difference.count() << "\n\n";
+}
+
+
+int main() {
+    const vector<string> & out = generate_numbers();
+
+    array<Result, 11> results;
+
+    for(int i = 0; i < 11; ++i) {
+        auto [algo, name] = generate_test(i);
+        results[i].algo = algo;
+        results[i].name = name;
+        results[i].number = i;//needed
+    }
+
+
 
     return 0;
 }
