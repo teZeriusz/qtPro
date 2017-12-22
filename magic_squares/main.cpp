@@ -358,19 +358,19 @@ pair<function<bool(string)>, string> generate_test(int round) {
 // this generates all possible combinations
 // of 1-9 digits that may or may not
 // form a magic square
-static string buffer = "000000000";
-void generate_or_check(int index_or_check = 8) {
-    if(index_or_check == -1){
-        if(check_if_magic(buffer))
-            cout << buffer << " ";
-        return;
-    }
+//static string buffer = "000000000";
+//void generate_or_check(int index_or_check = 8) {
+//    if(index_or_check == -1){
+//        if(check_if_magic(buffer))
+//            cout << buffer << " ";
+//        return;
+//    }
 
-    for(auto i = 1u; i < 10; ++i){
-        buffer[index_or_check] = '0' + i;
-        generate_or_check(index_or_check-1);
-    }
-}
+//    for(auto i = 1u; i < 10; ++i){
+//        buffer[index_or_check] = '0' + i;
+//        generate_or_check(index_or_check-1);
+//    }
+//}
 
 
 vector<string> generate_numbers() {
@@ -388,7 +388,7 @@ vector<string> generate_numbers() {
 
 struct Result {
     string name;
-    int size_t = 0;
+    size_t number;
     chrono::duration<double> time;
     function<bool(string)> algo;
     vector<bool> magic_squares_result;
@@ -432,8 +432,7 @@ int main() {
         results[i].number = i;//needed
 
         measure(results[i], out, 1000);
-        cout << "name: " << results[i].name <<
-                "\n\t\t\ttime: " << results[i].time.count() << endl;
+        cout << setw(10) << left << "name: " << results[i].name << setw(10) << right << "ttime: " << results[i].time.count() << endl;
     }
 
     return 0;
