@@ -358,19 +358,19 @@ pair<function<bool(string)>, string> generate_test(int round) {
 // this generates all possible combinations
 // of 1-9 digits that may or may not
 // form a magic square
-static string buffer = "000000000";
-void generate_or_check(int index_or_check = 8) {
-    if(index_or_check == -1){
-        if(check_if_magic(buffer))
-            cout << buffer << " ";
-        return;
-    }
+//static string buffer = "000000000";
+//void generate_or_check(int index_or_check = 8) {
+//    if(index_or_check == -1){
+//        if(check_if_magic(buffer))
+//            cout << buffer << " ";
+//        return;
+//    }
 
-    for(auto i = 1u; i < 10; ++i){
-        buffer[index_or_check] = '0' + i;
-        generate_or_check(index_or_check-1);
-    }
-}
+//    for(auto i = 1u; i < 10; ++i){
+//        buffer[index_or_check] = '0' + i;
+//        generate_or_check(index_or_check-1);
+//    }
+//}
 
 
 vector<string> generate_numbers() {
@@ -388,14 +388,13 @@ vector<string> generate_numbers() {
 
 struct Result {
     string name;
-    int size_t = 0;
+    int number = 0;
     chrono::duration<double> time;
     function<bool(string)> algo;
     vector<bool> magic_squares_result;
 };
 
 
-//TODO add some simple algo to test it
 void validate(array<Result, 11> & results, const vector<string> & out) {
     for(auto & res: results) {
         res.magic_squares_result.reserve(out.size());
@@ -403,7 +402,26 @@ void validate(array<Result, 11> & results, const vector<string> & out) {
             res.magic_squares_result[i] = res.algo(out[i]);
         }
     }
-    //compare magic_seq_results
+
+    auto cmp = [](const vector<bool> & a, const vector<bool> & b) {
+        if(a.size() != b.size()) {
+            return false;
+        }
+        for(size_t i = 0; i < a.size(); ++i) {
+            if(a[i] != b[i]) {
+                return false;
+            }
+        }
+
+        return true;
+    };
+
+    for(size_t i = 1; i < results.size(); ++i) {
+        if(! cmp(results[0].magic_squares_result, results[i].magic_squares_result)) {
+            cout << "One of algos is broken - first:" << results[0].name
+                 << " second:" << results[i].name << endl;
+        }
+    }
 }
 
 
@@ -431,10 +449,12 @@ int main() {
         results[i].name = name;
         results[i].number = i;//needed
 
-        measure(results[i], out, 1000);
+//        measure(results[i], out, 1000);
         cout << "name: " << results[i].name <<
                 "\n\t\t\ttime: " << results[i].time.count() << endl;
     }
+
+    validate(results, out);
 
     return 0;
 }
