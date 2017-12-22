@@ -388,7 +388,7 @@ vector<string> generate_numbers() {
 
 struct Result {
     string name;
-    int number = 0;
+    size_t number;
     chrono::duration<double> time;
     function<bool(string)> algo;
     vector<bool> magic_squares_result;
@@ -449,9 +449,8 @@ int main() {
         results[i].name = name;
         results[i].number = i;//needed
 
-//        measure(results[i], out, 1000);
-        cout << "name: " << results[i].name <<
-                "\n\t\t\ttime: " << results[i].time.count() << endl;
+        measure(results[i], out, 1);
+        cout << setw(10) << left << "name: " << results[i].name << setw(10) << right << "ttime: " << results[i].time.count() << endl;
     }
 
     validate(results, out);
