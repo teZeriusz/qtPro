@@ -355,28 +355,10 @@ pair<function<bool(string)>, string> generate_test(int round) {
 }
 
 
-// this generates all possible combinations
-// of 1-9 digits that may or may not
-// form a magic square
-//static string buffer = "000000000";
-//void generate_or_check(int index_or_check = 8) {
-//    if(index_or_check == -1){
-//        if(check_if_magic(buffer))
-//            cout << buffer << " ";
-//        return;
-//    }
-
-//    for(auto i = 1u; i < 10; ++i){
-//        buffer[index_or_check] = '0' + i;
-//        generate_or_check(index_or_check-1);
-//    }
-//}
-
-
 vector<string> generate_numbers() {
     string in("123456789");
     int i = 0;
-    vector<string> out(362880);
+    vector<string> out(362880);//maximum permutations
 
     do {
         out[i] = in;
@@ -425,16 +407,40 @@ void validate(array<Result, 11> & results, const vector<string> & out) {
 }
 
 
-void measure(Result & res, const vector<string> & out, uint32_t repeat = 1) {
-    auto start = chrono::system_clock::now();
+void measure(array<Result, 11> & results, const vector<string> & out, uint32_t repeat = 1) {
+    for(auto & res: results) {
+        auto start = chrono::system_clock::now();
 
-    for(const auto & seq: out) {
-        for(uint32_t i = 0; i < repeat; ++i) {
-            res.algo(seq);
+        for(const auto & seq: out) {
+            for(uint32_t i = 0; i < repeat; ++i) {
+                res.algo(seq);
+            }
         }
-    }
 
-    res.time = chrono::system_clock::now() - start;
+        res.time = chrono::system_clock::now() - start;
+    }
+}
+
+
+void print(array<Result, 11> & results) {
+    std::sort(results.begin(), results.end(), [](const Result & a, const Result & b) {
+        return a.time < b.time;
+    });
+
+    for(const Result & res: results) {
+        cout << setw(10) << left << "name: " << res.name << setw(20)
+             << right << " time: " << res.time.count() << endl;
+    }
+}
+
+
+void init(array<Result, 11> & results) {
+    for(size_t i = 0; i < 11; ++i) {
+        auto [algo, name] = generate_test(i);
+        results[i].algo = algo;
+        results[i].name = name;
+        results[i].number = i;//needed ?
+    }
 }
 
 
@@ -442,18 +448,11 @@ int main() {
     const vector<string> & out = generate_numbers();
 
     array<Result, 11> results;
+    init(results);
 
-    for(size_t i = 0; i < 11; ++i) {
-        auto [algo, name] = generate_test(i);
-        results[i].algo = algo;
-        results[i].name = name;
-        results[i].number = i;//needed
-
-        measure(results[i], out, 1);
-        cout << setw(10) << left << "name: " << results[i].name << setw(10) << right << "ttime: " << results[i].time.count() << endl;
-    }
-
+    measure(results, out, 100);
     validate(results, out);
+    print(results);
 
     return 0;
 }
