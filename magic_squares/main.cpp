@@ -428,8 +428,8 @@ void print(array<Result, 11> & results) {
     });
 
     for(const Result & res: results) {
-        cout << setw(10) << left << "name: " << res.name << setw(20)
-             << right << " time: " << res.time.count() << endl;
+        cout << "name: " << res.name << setw(30)
+             << res.time.count() << endl;
     }
 }
 
