@@ -7,6 +7,10 @@
 
 using namespace std;
 
+
+//extern int __builtin_popcount(unsigned);
+
+
 void testSpeedFun(const vector<unsigned> & vals, std::function<unsigned(unsigned)> fun) {
     const auto start = chrono::high_resolution_clock::now();
 
@@ -17,8 +21,7 @@ void testSpeedFun(const vector<unsigned> & vals, std::function<unsigned(unsigned
     const auto end = chrono::high_resolution_clock::now();
 
     auto diff = end - start;
-//    cout << "elapsed:" << chrono::duration <double, nano> (diff).count() << " ns" << endl;
-    cout << "elapsed:" << chrono::duration <double> (diff).count() << endl;
+    cout << "elapsed:" << chrono::duration <double, milli> (diff).count() << " ms" << endl;
 }
 
 
@@ -33,12 +36,12 @@ struct byte {
     bool bit7 : 1;
 };
 
+union UU {
+    unsigned _t;
+    byte tab[sizeof(unsigned)];
+} UU;
 
 unsigned t1(unsigned t) {
-    union UU {
-        unsigned _t;
-        byte tab[sizeof(t)];
-    } UU;
     UU._t = t;
 
     return accumulate(begin(UU.tab), end(UU.tab), 0u, [](unsigned & uh, const byte & by) {
@@ -70,15 +73,34 @@ vector<unsigned> genTestValues(unsigned size) {
 }
 
 
+int my__builtin_popcnt(unsigned n) {
+    int count;
+    {
+        asm("popcnt %1,%0" : "=r"(count) : "rm"(n) : "cc");
+    }
+
+    return count;
+}
+
 int main() {
     const vector<unsigned> & out = genTestValues(1000000);
 
-
     function<void()> runTest1 = bind(testSpeedFun, out, t1);
     function<void()> runTest2 = bind(testSpeedFun, out, t2);
+    function<void()> runTest3 = bind(testSpeedFun, out, my__builtin_popcnt);
 
+    cout << "t1: ";
     runTest1();
+
+    cout << "t2: ";
     runTest2();
+
+    if (__builtin_cpu_supports ("popcnt")) {
+        cout << "t3: ";
+        runTest3();
+    }
+
 
     return 0;
 }
+//__builtin_popcount
