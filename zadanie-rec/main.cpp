@@ -8,9 +8,6 @@
 using namespace std;
 
 
-//extern int __builtin_popcount(unsigned);
-
-
 void testSpeedFun(const vector<unsigned> & vals, std::function<unsigned(unsigned)> fun) {
     const auto start = chrono::high_resolution_clock::now();
 
@@ -82,12 +79,20 @@ int my__builtin_popcnt(unsigned n) {
     return count;
 }
 
+//direct put in bind not working - linker cannot find it
+int my__builtin_popcount(unsigned n) {
+    return __builtin_popcount(n);
+}
+
+
 int main() {
     const vector<unsigned> & out = genTestValues(1000000);
 
     function<void()> runTest1 = bind(testSpeedFun, out, t1);
     function<void()> runTest2 = bind(testSpeedFun, out, t2);
     function<void()> runTest3 = bind(testSpeedFun, out, my__builtin_popcnt);
+    function<void()> runTest4 = bind(testSpeedFun, out, my__builtin_popcount);
+
 
     cout << "t1: ";
     runTest1();
@@ -98,9 +103,10 @@ int main() {
     if (__builtin_cpu_supports ("popcnt")) {
         cout << "t3: ";
         runTest3();
-    }
 
+        cout << "t4: ";
+        runTest4();
+    }
 
     return 0;
 }
-//__builtin_popcount
