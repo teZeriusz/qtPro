@@ -422,6 +422,16 @@ void measure(array<Result, 11> & results, const vector<string> & out, uint32_t r
 }
 
 
+void init(array<Result, 11> & results) {
+//    for(size_t i = 0; i < 11; ++i) {
+//        auto [algo, name] = generate_test(i);
+//        results[i].algo = algo;
+//        results[i].name = name;
+//        results[i].number = i;//needed ?
+//    }
+}
+
+
 void print(array<Result, 11> & results) {
     std::sort(results.begin(), results.end(), [](const Result & a, const Result & b) {
         return a.time < b.time;
@@ -430,16 +440,6 @@ void print(array<Result, 11> & results) {
     for(const Result & res: results) {
         cout << "name: " << res.name << setw(30)
              << res.time.count() << endl;
-    }
-}
-
-
-void init(array<Result, 11> & results) {
-    for(size_t i = 0; i < 11; ++i) {
-        auto [algo, name] = generate_test(i);
-        results[i].algo = algo;
-        results[i].name = name;
-        results[i].number = i;//needed ?
     }
 }
 
@@ -453,6 +453,17 @@ int main() {
     measure(results, out, 100);
     validate(results, out);
     print(results);
+
+    const auto benchmark = [](auto f) {
+        const auto time = clock::now();
+        f();
+        return clock::now() - time;
+    };
+
+    const auto t = benchmark([] {
+        algo1();//TODO write me
+    }
+    );
 
     return 0;
 }
