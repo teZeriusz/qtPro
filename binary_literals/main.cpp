@@ -78,8 +78,8 @@ constexpr byte32 operator""_b32()
             binary_struct<byte32, bits...>::value;
 }
 
-}
-}
+}//namespace
+}//namespace binary
 
 
 int main() {
@@ -89,7 +89,7 @@ int main() {
     auto b2 = 101010101010_b16;
     auto b3 = 101010101010101010101010_b32;
 
-    std::cout << b1 << std::endl;
+    std::cout << static_cast<int>(b1) << std::endl;
     std::cout << b2 << std::endl;
     std::cout << b3 << std::endl;
 
