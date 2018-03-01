@@ -48,6 +48,7 @@ struct binary_struct<CharT>
 template<char... bits>
 constexpr byte8 operator""_b8()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     static_assert(
                 sizeof...(bits) <= 8,
                 "binary literal b8 must be up to 8 digits long");
@@ -59,6 +60,7 @@ constexpr byte8 operator""_b8()
 template<char... bits>
 constexpr byte16 operator""_b16()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     static_assert(
                 sizeof...(bits) <= 16,
                 "binary literal b16 must be up to 16 digits long");
@@ -70,6 +72,7 @@ constexpr byte16 operator""_b16()
 template<char... bits>
 constexpr byte32 operator""_b32()
 {
+    std::cout << __PRETTY_FUNCTION__ << std::endl;
     static_assert(
                 sizeof...(bits) <= 32,
                 "binary literal b32 must be up to 32 digits long");
@@ -86,12 +89,12 @@ int main() {
     using namespace binary;
     using namespace binary_literals;
     auto b1 = 1010_b8;
-    auto b2 = 101010101010_b16;
-    auto b3 = 101010101010101010101010_b32;
+//    auto b2 = 101010101010_b16;
+//    auto b3 = 101010101010101010101010_b32;
 
     std::cout << static_cast<int>(b1) << std::endl;
-    std::cout << b2 << std::endl;
-    std::cout << b3 << std::endl;
+//    std::cout << b2 << std::endl;
+//    std::cout << b3 << std::endl;
 
     // binary literal b8 must be up to 8 digits long
     //auto b4 = 0010111111_b8;

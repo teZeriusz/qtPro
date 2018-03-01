@@ -455,9 +455,9 @@ int main() {
     print(results);
 
     const auto benchmark = [](auto f) {
-        const auto time = clock::now();
+        const auto time = chrono::system_clock::now();
         f();
-        return clock::now() - time;
+        return chrono::system_clock::now() - time;
     };
 
     const auto t = benchmark([] {

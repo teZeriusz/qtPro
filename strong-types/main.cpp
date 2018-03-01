@@ -1,4 +1,5 @@
 #include <iostream>
+#include <tuple>
 
 using namespace std;
 
@@ -33,12 +34,17 @@ class Rectangle
     Height m_height;
 public:
     Rectangle(Width w, Height h):m_width(w), m_height(h) {}
+
+
+    void print() const {//soo fucking weak
+        std::cout << "w:" << (m_width.get().get()) << std::endl;
+    }
 };
 
 
 int main() {
     Rectangle r(Width(10_meter), Height(12_meter));
+    r.print();
 
-    cout << "Hello World!" << endl;
     return 0;
 }

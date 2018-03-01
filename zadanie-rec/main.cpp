@@ -65,7 +65,15 @@ vector<unsigned> genTestValues(unsigned size) {
     std::mt19937 g(rd());
 
     std::shuffle(begin(out), end(out), g);
+//    std::random_shuffle(begin(out), end(out), g));//TODO use that?
 
+//TODO use to generate
+//    std::random_device rd{};
+//    std::mt19937 mt{ rd() };
+//    std::uniform_int_distribution<> ud{1, 10};
+//    std::vector<int> v(5);
+//    std::generate(v.begin(), v.end(),
+//                  [&ud, &mt] {return ud(mt); });
     return out;
 }
 
@@ -84,7 +92,8 @@ int my__builtin_popcount(unsigned n) {
     return __builtin_popcount(n);
 }
 
-
+//TODO add vector<bool>
+//TODO add alignas in bitfield ?
 int main() {
     const vector<unsigned> & out = genTestValues(1000000);
 
