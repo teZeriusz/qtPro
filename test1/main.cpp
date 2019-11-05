@@ -78,7 +78,7 @@ void test() {
                           // random_device is generally only used to seed
                           // a PRNG such as mt19937
     }
-    for (auto p : hist) {
+    for (const auto & p : hist) {
         std::cout << p.first << " : " << std::string(p.second/100, '*') << '\n';
     }
 }
