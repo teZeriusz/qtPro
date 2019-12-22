@@ -272,6 +272,23 @@ void varian_in_vector2(vector<derived>& d) {
               }, a);
     }
 }
+//weak_ptr
+class Person {
+    weak_ptr<Person> m_something;
+    string m_name;
+public:
+    Person(const string & name):m_name(name) {
+        cout << "Person ctor " << m_name << "\n";
+    }
+    ~Person(){
+        cout << "Person dtor " << m_name << "\n";
+    }
+
+    void set_something(const shared_ptr<Person> & something) {
+        m_something = something;
+    }
+};
+
 int main()
 {
     test_insertAsString();
@@ -283,5 +300,22 @@ int main()
     std::cout << "s2: " << s2.size() << " \"" << s2 << "\"\n";
 
 
+    auto ptr_1 = make_shared<Person>("Dupa");
+    auto ptr_2 = make_shared<Person>("Kupa");
+    ptr_1->set_something(ptr_2);
+    ptr_2->set_something(ptr_1);
+
     return 0;
 }
+/*
+glvalue (generalized lvalue)
+- had identity
+rvalue
+- can be moved from
+lvalue
+- has identity and can't be moved from
+xvalue
+- has identity and can be moved from
+prvalue
+- Does not have identity and can be moved from
+*/
