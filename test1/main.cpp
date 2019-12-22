@@ -1,113 +1,229 @@
-#include<iostream>
-#include<thread>
-#include<random>
-#include<chrono>
-#include<atomic>
-#include<map>
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <sstream>
+#include <map>
+#include <vector>
+#include <chrono>
+#include <algorithm>
 
-//concept based polimorphism
+#include <boost/tokenizer.hpp>
+#include <boost/algorithm/string.hpp>
 
-class drawable_concept {
-public:
-    drawable_concept() = default;
-    virtual ~drawable_concept() = default;
-    virtual void draw() = 0;
-};
 
-template<class T>
-class drawable_model: public drawable_concept {
-    T model_;
-public:
-    drawable_model(const T & model): model_(model) {}
-    void draw() {
-        model_.draw();
+using namespace std;
+
+size_t fun1(const string & data) {
+    size_t out = 0;
+    char *input = strdup(data.data());
+    char *token = std::strtok(input, " ");
+
+    while(token != nullptr) {
+        ++out;
+        token = std::strtok(nullptr, " ");
     }
 
-    ~drawable_model() = default;
-};
+    free(input);
+    return out;
+}
 
-class drawable {
-    std::unique_ptr<drawable_concept> object_;
-public:
-    template<typename T>
-    drawable(const T& x): object_(new drawable_model<T>(x)) {}
-    void draw() {
-        object_->draw();
+//------------WIN-------------------
+size_t fun2(const string & data) {
+    size_t out = 0;
+
+    auto lastPos = data.find_first_not_of(' ', 0);
+    auto pos = data.find_first_of(' ', lastPos);
+
+    while(lastPos != string::npos || pos != string::npos) {
+        ++out;
+        //lastPos, pos - lastPos
+        lastPos = data.find_first_not_of(' ', pos);
+        pos = data.find_first_of(' ', lastPos);
     }
-};
 
-//policy based design class
-template<typename OutputPolicy, typename LanguagePolicy>
-class HelloWord:
-        private OutputPolicy,
-        private LanguagePolicy {
-    using OutputPolicy::print;
-    using LanguagePolicy::message;
+    return out;
+}
 
-public:
-    void run() const {
-        print(message());
+
+size_t fun3(const string & data) {
+    boost::tokenizer<> tok(data);
+    return distance(tok.begin(), tok.end());
+}
+
+
+size_t fun4(const string & data) {
+    istringstream iss(data);
+    size_t out = 0;
+    string buff;
+
+    while(iss >> buff) {//getline?
+        ++out;
     }
-};
 
-//curiously recurring template pattern
-typedef int awesome;
-template<class T>
-struct Base {
-    awesome foonathan() {
-        static_cast<T*>(this)->i++;
-        return static_cast<T*>(this)->something();
+    return out;
+}
+
+
+size_t fun5(const string & data) {
+    istringstream iss(data);
+    size_t out = 0;
+    string buff;
+
+    while(std::getline(iss, buff, ' ')) {
+        if(! buff.empty()) {//test2 fail without
+            ++out;
+        }
     }
-};
 
-struct Derived: public Base<Derived> {
-    int i;
-    awesome something();
-    //...
-};
+    return out;
+}
 
 
-void test() {
-    std::random_device rd;
-    std::map<int, int> hist;
-    std::uniform_int_distribution<int> dist(0, 9);
-    for (int n = 0; n < 20000; ++n) {
-        ++hist[dist(rd)]; // note: demo only: the performance of many
-                          // implementations of random_device degrades sharply
-                          // once the entropy pool is exhausted. For practical use
-                          // random_device is generally only used to seed
-                          // a PRNG such as mt19937
+size_t fun6(const string & data) {
+    size_t out = 0;
+    vector<string> outStrs;
+
+    split(outStrs, data, boost::is_space(), boost::token_compress_off);
+
+    for(const auto & el: outStrs) {
+        if(! el.empty()) {//token_compress_on - failed with double space
+            ++out;
+        }
     }
-    for (const auto & p : hist) {
-        std::cout << p.first << " : " << std::string(p.second/100, '*') << '\n';
+
+    return out;
+}
+
+
+size_t fun7(const string & data) {
+    string delims(" ");
+
+    typedef boost::tokenizer<boost::char_separator<char>> splitup;
+    boost::char_separator<char> sep(delims.c_str());
+
+    splitup tokens(data, sep);
+    return distance(tokens.begin(), tokens.end());
+}
+
+
+size_t funTest(const string & data) {
+    typedef vector< boost::iterator_range<string::const_iterator> > find_vector_type;
+
+    size_t out = 0;
+
+    find_vector_type FindVec; // #1: Search for separators
+    boost::ifind_all( FindVec, data, " " ); // FindVec == { [abc],[ABC],[aBc] }
+
+    //    boost::split(FindVec, data, " ");
+
+    cout << "DUpa size:" << FindVec.size() << endl;
+
+    for(size_t i = 0; i < FindVec.size(); ++i) {
+        //    for(FindVec::const_iterator it = FindVec.cbegin(); it != FindVec.cend(); ++it) {
+
+        if(FindVec[i].begin() != FindVec[i].end()) {
+            cout << "Licz dist:" << distance(FindVec[i].begin(), FindVec[i].end()) << endl;
+        }
+        cout << "front:" << *(FindVec[i].begin()) << endl;//iter_range
+    }
+
+    return out;
+}
+
+
+template<typename T, typename Callable>
+bool verify(const T & mapIterator, Callable callable) {
+    return mapIterator.first == callable(mapIterator.second);
+}
+
+//-----------CORECTNES-----------------------------
+void verifyTests() {
+    std::multimap<size_t, string> testMap;
+    string test1("testowy pierwszy string");
+    string test2(" testowy pierwszy string ");
+    string test3("  testowy  pierwszy  string  ");
+
+
+    testMap.insert(make_pair(3, test1));
+    testMap.insert(make_pair(3, test2));
+    testMap.insert(make_pair(3, test3));
+
+
+    for(auto it = testMap.cbegin(); it != testMap.cend(); ++it) {
+        cout << "verify f1:" << verify(*it, fun1) << " for[" << it->second << "]" << endl;
+        cout << "verify f2:" << verify(*it, fun2) << " for[" << it->second << "]" << endl;
+        cout << "verify f3:" << verify(*it, fun3) << " for[" << it->second << "]" << endl;
+        cout << "verify f4:" << verify(*it, fun4) << " for[" << it->second << "]" << endl;
+        cout << "verify f5:" << verify(*it, fun5) << " for[" << it->second << "]" << endl;
+        cout << "verify f6:" << verify(*it, fun6) << " for[" << it->second << "]" << endl;
+        cout << "verify f7:" << verify(*it, fun7) << " for[" << it->second << "]" << endl;
     }
 }
 
-void thread_task(std::atomic<bool> & boolean) {
-//    std::default_random_engine engine{std::random_device{}()};
-    std::mt19937 engine{std::random_device{}()};
-    std::uniform_int_distribution<int64_t> dist{1000, 3000};
-    int64_t wait_time = dist(engine);
-    std::cout << "wait time:" << wait_time << std::endl;
-    std::this_thread::sleep_for(std::chrono::milliseconds{wait_time});
-    std::string line = "Thread slept for " + std::to_string(wait_time) + "ms.\n";
-    std::cout << line;
-    boolean.store(true);
+
+vector<string> generateString() {
+    size_t number = 1000000;
+
+    string test1("testowy pierwszy string");
+    string test2(" testowy pierwszy string ");
+    string test3("  testowy  pierwszy  string  ");
+
+    vector<string> out(number);
+
+    for(size_t i = 0; i < number; ++i) {
+        out[i] = test1;
+    }
+
+    return out;
 }
+
+typedef pair<string, double> ReportPair_T;
+
+
+template<typename T, typename Callable>
+ReportPair_T speedFun(T strings, Callable callable, string functionName) {
+    //startTimer
+    const auto start = chrono::high_resolution_clock::now();
+    for(const auto & el: strings) {
+        callable(el);
+    }
+    //endTimer
+    const auto end = chrono::high_resolution_clock::now();
+    auto diff = end - start;
+
+    return make_pair(functionName, chrono::duration<double, nano>(diff).count());
+}
+
+//---------------SPEED--------------------------------------
+void speedTests() {
+    const vector<string> & testStrings = generateString();
+    vector<ReportPair_T> outVector;
+
+    outVector.push_back( speedFun(testStrings, fun1, "funkcja 1") );
+    outVector.push_back( speedFun(testStrings, fun2, "funkcja 2") );
+    outVector.push_back( speedFun(testStrings, fun3, "funkcja 3") );
+    outVector.push_back( speedFun(testStrings, fun4, "funkcja 4") );
+    outVector.push_back( speedFun(testStrings, fun5, "funkcja 5") );
+    outVector.push_back( speedFun(testStrings, fun6, "funkcja 6") );
+    outVector.push_back( speedFun(testStrings, fun7, "funkcja 7") );
+
+    std::sort(outVector.begin(), outVector.end(),
+              [](const ReportPair_T & l, const ReportPair_T & r)->bool {
+
+                  return l.second < r.second;
+              });
+
+    cout << fixed << "RAPORT---begin\n";
+    for(const auto & el: outVector) {
+        cout << el.first << " time[ns]:" << el.second << endl;
+    }
+    cout << "RAPORT---end\n";
+}
+
 
 int main() {
-    std::vector<std::thread> threads;
-    std::atomic<bool> boolean{false};
-    for(int i = 0; i < 4; i++) {
-        threads.emplace_back([&]{thread_task(boolean);});
-    }
-    std::string line = "We reacted after a single thread finished!\n";
-    while(!boolean) std::this_thread::yield();
-    std::cout << line;
-    for(std::thread & thread : threads) {
-        thread.join();
-    }
+    verifyTests();
+    speedTests();
 
-    test();
     return 0;
 }

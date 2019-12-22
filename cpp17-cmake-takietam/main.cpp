@@ -3,6 +3,10 @@
 #include <optional>
 #include <any>
 #include <functional>
+#include <string>
+#include <mutex>
+#include <shared_mutex>
+#include <execution>
 
 using namespace std;
 void variant_t1() {
@@ -83,8 +87,201 @@ void apply_t1() {
     std::apply(add, std::make_tuple(1, 2)); // == 3
 }
 
+template<typename T, typename Coll, typename ...Mxs>
+void insertAsString(T t, Coll & coll, Mxs&...mutexes) {
+    if constexpr(std::scoped_lock sl{mutexes...}; ! std::is_arithmetic_v<T>) {//std::lock() ?//FATAL? where are mutexes unlocked?
+        coll.push_back(t);
+    }
+    else {
+        coll.push_back(std::to_string(t));
+    }
+}
+
+void test_insertAsString() {
+    std::vector<std::string> strings;
+    std::mutex stringsMutex;
+    std::shared_mutex readonlyMutex;
+    {
+//        std::lock_guard lg(stringsMutex); //lock_guard<std::mutex> Class Template Argument Deduction
+        insertAsString("dupa", strings, stringsMutex, readonlyMutex);
+
+        insertAsString(42,  strings, stringsMutex);
+        insertAsString(0.4, strings, stringsMutex);
+    }
+}
+
+
+//void print(){};
+
+template<typename T, typename ...Types>
+void print(T firstArg, Types... args) {
+    std::cout << firstArg << '\n';
+    if constexpr(sizeof... (args) > 0)
+        print(args...);
+}
+
+template<typename T>
+auto spaceBefore(T arg) {
+    std::cout << ' ';
+    return arg;
+}
+
+template<typename ...T>
+void foldPrint(T...args) {
+    (cout << ... << args) << "\n";
+}
+
+template<typename First, typename ...T>
+void foldPrint2(First x, T...args) {
+    cout << x;
+    (cout << ... << spaceBefore(args)) << "\n";
+}
+
+template<typename First, typename ...T>
+void foldPrint3(const First &x, const T&...args) {
+    cout << x;
+    auto space = [](const auto & space_me) {
+        cout << ' ' << space_me;
+    };
+    (... , space(args));
+    cout << "\n";
+}
+
+template<auto sep = ' ',
+    typename First, typename ...T>
+void foldPrint4(const First &x, const T&...args) {
+    cout << x;
+    auto space = [](const auto & space_me) {
+        cout << sep << space_me;
+    };
+    (... , space(args));
+    cout << "\n";
+}
+
+
+void test_print() {
+    print(14, "dup", "bladych");
+    foldPrint(14, "dup", "bladych");
+    foldPrint2(14, "dup", "bladych");
+    foldPrint3(14, "dup", "bladych");
+    foldPrint4(14, "dup", "bladych");
+    foldPrint4<'-'>(14, "dup", "bladych");
+    static const char sep[] = ", ";
+    foldPrint4<sep>(14, "dup", "bladych");
+}
+
+
+template<typename ...T>
+auto foldSum(T...s) {
+//    return (... + s);
+    return (0 + ... + s);
+}
+
+template<typename T>
+void foo(T t) {
+
+}
+
+template<typename ...Args>
+void callFoo(Args ...arg) {
+//    std::initializer_list<int>{((void)foo(arg), 0) ...}; //before C++17
+    (..., (void)foo(arg));//call foo with fold expression - c++17
+}
+
+
+auto generateStrings(size_t elemNuber) {
+    vector<string> strings;
+    strings.reserve(elemNuber);
+    for(size_t i = 0; i < elemNuber; ++i) {
+        strings.emplace_back("id" + std::to_string(i));
+        strings.emplace_back("ID" + std::to_string(i));
+    }
+
+    return strings;
+}
+
+void playWithStrings() {
+    auto strings = generateStrings(1000);
+    sort(std::execution::seq, //par
+        begin(strings), end(strings),
+         [](const auto & a, const auto & b) {
+             return string_view{a}.substr(2) < string_view{b}.substr(2);
+         }
+         );
+}
+
+void hahaha() {
+    vector<int> nums{3,4,5,1,2,0,10};
+//    partial_sum(nums.begin(), nums.end(),//XXX why this is not working?
+//                     ostream_iterator<string>(std::cout, " "));
+
+    inclusive_scan(std::execution::seq,
+                   nums.begin(), nums.end(),
+                   ostream_iterator<int>(cout, " "));
+}
+
+struct A {//NO need for base class in variant
+    virtual void draw() = 0;
+    virtual void move() = 0;
+};
+
+struct B{//: public A {
+    void draw() {}
+    void move() {}
+};
+
+struct C{//: public A {
+    void draw() {}
+    void move() {}
+};
+using derived = std::variant<B,C>;
+
+void varian_playground() {
+    vector<derived> dd;
+    dd.push_back(B{});
+    dd.push_back(C{});
+}
+
+void varian_in_vector(vector<derived>& d) {
+    for(derived & a: d) {
+        visit([](auto & el)
+              {
+                  el.draw();
+                  if constexpr(std::is_same_v<decltype(el), C&>) {//compile time GREAT!
+                      el.move();
+                  }
+              }, a);
+
+        if(auto goPtr = std::get_if<C>(&a); goPtr) {//XXX not working in visit()! why?
+            goPtr->move();
+        }
+    }
+}
+
+template<typename ...T>//XXX WTF...???
+struct Ovld: T... {
+    using T::operator()...;
+};
+template<typename...T>
+Ovld(T...) -> Ovld<T...>;
+
+void varian_in_vector2(vector<derived>& d) {
+    for(auto & a: d) {
+        visit(Ovld{[](auto & el){ el.draw(); },
+                   [](C & c){ c.move(); }
+              }, a);
+    }
+}
 int main()
 {
-    cout << "Hello World!" << endl;
+    test_insertAsString();
+    test_print();
+
+    std::string_view s1 = "abc\0\0def"; //cmon wtf
+    std::string_view s2 = "abc\0\0def"sv;
+    std::cout << "s1: " << s1.size() << " \"" << s1 << "\"\n";
+    std::cout << "s2: " << s2.size() << " \"" << s2 << "\"\n";
+
+
     return 0;
 }
