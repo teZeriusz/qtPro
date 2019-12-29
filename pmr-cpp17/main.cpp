@@ -2,17 +2,19 @@
 #include <string>
 #include <set>
 #include <vector>
-#include <experimental/memory_resource>
+#include <memory_resource>
 
 using namespace std;
 
 
-struct CountingMemoryResource: public std::experimental::pmr::memory_resource {
-    explicit CountingMemoryResource(std::experimental::pmr::memory_resource * parent = std::experimental::pmr::get_default_resource()):
+struct CountingMemoryResource: public pmr::memory_resource {
+    explicit CountingMemoryResource(pmr::memory_resource * parent = pmr::get_default_resource()):
         d_parent(parent), d_currentSize(0), d_maxSize(0), d_count(0) {
     }
 
     void * do_allocate(const size_t _Bytes, const size_t _Allign) override {
+        cout << "alloc bytes:" << _Bytes << " allign:" << _Allign << endl;
+
         void * res = d_parent->allocate(_Bytes, _Allign);
         d_currentSize += _Bytes;
         if(d_currentSize > d_maxSize)
@@ -32,7 +34,7 @@ struct CountingMemoryResource: public std::experimental::pmr::memory_resource {
     }
 
 private:
-    std::experimental::pmr::memory_resource * d_parent;
+    pmr::memory_resource * d_parent;
     size_t d_currentSize, d_maxSize, d_count;
 };
 
@@ -40,7 +42,7 @@ private:
 
 size_t unique(std::string & s1) {
     CountingMemoryResource cmr;
-    std::experimental::pmr::set<char> a(&cmr);
+    pmr::set<char> a(&cmr);
     a.insert(s1.begin(), s1.end());
 
     return a.size();

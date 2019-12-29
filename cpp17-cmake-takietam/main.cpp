@@ -7,6 +7,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include <execution>
+#include <map>
 
 using namespace std;
 void variant_t1() {
@@ -288,6 +289,53 @@ public:
         m_something = something;
     }
 };
+
+void test_emplace_back() {
+    vector<string> v;
+
+    auto & s = v.emplace_back("Hello");
+    s += ", ";
+    s += "world";
+}
+
+//sorted vector - binary search? - compare to set <= remove to have all inserted
+struct Element {
+    vector<int> container;
+    int id;
+
+    void inser(int i) {
+        for(auto it(container.begin()), end(container.end()); it != end; ++it) {
+            if(*it >= i) {
+                if(*it > i) {
+                    container.insert(it, i);
+                }
+                return;
+            }
+            container.push_back(i);
+        }
+    }
+};
+
+void test_extract_map_node() {
+    map<int, string> m{{1, "mango"}, {2, "orange"}, {3, "apple"}};
+
+    auto handler = m.extract(2);
+    handler.key() = 4;
+    m.insert(move(handler)); //only move()
+}
+//NICE factory function
+auto new_record(const char * str) {
+    static int id = 0;
+    map<int, string> m;
+    m.emplace(++id, str);
+    return m.extract(m.begin());
+}
+
+void test_new_record() {
+    map<int, string> m;
+    m.insert(new_record("hi"));
+    m.insert(new_record("world"));
+}
 
 int main()
 {
