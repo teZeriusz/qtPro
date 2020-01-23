@@ -337,6 +337,116 @@ void test_new_record() {
     m.insert(new_record("world"));
 }
 
+//cpp14 - neat!
+template<typename F, typename ...Args>
+void for_each_argument(F f, Args&&...args) {
+    [](...)
+    {
+    }((f(std::forward<Args>(args)), 0)...);
+
+}
+
+void test_for_each_args() {
+    for_each_argument(
+        [](const auto & a) { cout << a; },
+        "dupa",
+        "blada",
+        1,
+        1.2
+        );
+}
+
+template<typename Call, typename ...Args>
+void forArgs(Call && call, Args&&...args) {
+    return (void) std::initializer_list<int>{
+        (call(std::forward<Args>(args)), 0)...
+    };
+}
+
+template <typename ...Args>
+auto make_vector(Args&&...args) {
+    using VectorItem = std::common_type_t<Args...>;
+    std::vector<VectorItem> result;
+
+    result.reserve(sizeof... (Args));
+
+//    forArgs(
+    for_each_argument(
+        [&result](auto && x)
+        {
+            result.emplace_back(std::forward<x>(x));
+        },
+            std::forward<Args>(args)...
+        );
+
+    return result;
+}
+//----RAII----
+class Vec {
+    int * ptr_ = nullptr;
+    size_t size_ = 0;
+public:
+    Vec(const Vec & rhs) {
+        ptr_ = new int[rhs.size_];
+        size_ = rhs.size_;
+        std::copy(rhs.ptr_, rhs.ptr_ + rhs.size_, ptr_);
+    }
+
+    Vec(Vec && rhs) noexcept {
+        ptr_ = std::exchange(rhs.ptr_, nullptr);
+        size_ = std::exchange(rhs.size_, 0);
+    }
+
+    friend void swap(Vec & a, Vec & b) noexcept {
+        a.swap(b);
+    }
+
+    void swap(Vec & rhs) noexcept {
+        using std::swap;
+        swap(ptr_, rhs.ptr_);
+        swap(size_, rhs.size_);
+    }
+
+    Vec & operator=(Vec copy) noexcept {
+        copy.swap(*this);
+        return *this;
+    }
+    ~Vec() {
+        delete [] ptr_;
+    }
+};
+
+namespace Zero {
+class Vec {
+    std::unique_ptr<int[]> ptr_ = nullptr;
+    size_t size_ = 0;
+public:
+    Vec(const Vec & rhs) {
+        ptr_ = make_unique<int[]>(rhs.size_);
+        size_ = rhs.size_;
+        std::copy(rhs.ptr_.get(), rhs.ptr_.get() + rhs.size_, ptr_.get());//SMELL TODO test it
+    }
+
+    Vec(Vec && rhs) = default;
+
+    friend void swap(Vec & a, Vec & b) noexcept {
+        a.swap(b);
+    }
+
+    void swap(Vec & rhs) noexcept {
+        using std::swap;
+        swap(ptr_, rhs.ptr_);
+        swap(size_, rhs.size_);
+    }
+
+    Vec & operator=(Vec copy) noexcept {
+        copy.swap(*this);
+        return *this;
+    }
+    ~Vec() = default;
+};
+}
+
 int main()
 {
     test_insertAsString();
@@ -352,6 +462,9 @@ int main()
     auto ptr_2 = make_shared<Person>("Kupa");
     ptr_1->set_something(ptr_2);
     ptr_2->set_something(ptr_1);
+
+
+    test_for_each_args();
 
     return 0;
 }
