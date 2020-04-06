@@ -75,11 +75,11 @@ struct data_chunk {
 
 };
 
-bool more_data_to_prepare();
-data_chunk prepare_data();
+bool more_data_to_prepare(){};
+data_chunk prepare_data(){};
 
-void process(data_chunk);
-bool is_last_chunk(data_chunk);
+void process(data_chunk){};
+bool is_last_chunk(data_chunk){};
 
 
 threadsafe_queue<data_chunk> data_queue;
@@ -144,8 +144,15 @@ void data_processing_thread()
 //        throw;
 //    }
 //}
-
+#include <algorithm>
+#include <execution>
+#include <iostream>
 int main() {
+    std::vector<int> resVec2{1, 2, 3, 4, 5, 6, 7, 8, 9};
+    std::inclusive_scan(std::execution::par,                   // 5
+                      resVec2.begin(), resVec2.end(), resVec2.begin(),
+                      [](int fir, int sec){ return fir * sec; }, 1);
 
+    copy(begin(resVec2), end(resVec2), std::ostream_iterator<int>(std::cout, " "));
     return 0;
 }
