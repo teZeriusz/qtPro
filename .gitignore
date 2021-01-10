@@ -2,5 +2,5 @@ build-**/
 */*.pro.user
 */*.pro.user*
 */*.txt.user*
-*/*.user*
+*/*.user
 
