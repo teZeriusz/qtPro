@@ -2,10 +2,8 @@ cmake_minimum_required(VERSION 3.13)
 project(appka)
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(appka main.cpp)
+add_executable(${PROJECT_NAME} main.cpp)
 
-
-project(Test_appka)
 enable_testing()
 
 find_package(PkgConfig REQUIRED)
@@ -15,6 +13,6 @@ SET(CMAKE_CXX_FLAGS -pthread)
 
 include_directories(${gtest_INCLUDE_DIRS})
 
-add_executable(Test_appka main_test.cpp)
-target_link_libraries(Test_appka ${gtest_LIBRARIES})
+add_executable(Test_${PROJECT_NAME} main_test.cpp)
+target_link_libraries(Test_${PROJECT_NAME} ${gtest_LIBRARIES})
 
